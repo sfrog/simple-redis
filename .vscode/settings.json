@@ -1,6 +1,12 @@
 {
   "cSpell.words": [
+    "dashmap",
+    "hget",
+    "hgetall",
+    "hmap",
+    "hset",
     "peekable",
+    "raddr",
     "thiserror"
   ]
 }

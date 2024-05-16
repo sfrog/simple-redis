@@ -26,6 +26,7 @@ impl RespDecode for RespFrame {
             Some(b',') => f64::decode(buf).map(RespFrame::Double),
             Some(b'%') => RespMap::decode(buf).map(RespFrame::Map),
             Some(b'~') => RespSet::decode(buf).map(RespFrame::Set),
+            None => Err(RespError::NotComplete),
             _ => Err(RespError::InvalidFrameType(format!(
                 "Invalid frame type: {:?}",
                 buf
