@@ -4,6 +4,7 @@
     "hget",
     "hgetall",
     "hmap",
+    "hmget",
     "hset",
     "peekable",
     "raddr",

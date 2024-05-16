@@ -36,6 +36,7 @@ pub enum Command {
     Set(Set),
     HGet(HGet),
     HSet(HSet),
+    HMGet(HMGet),
     HGetAll(HGetAll),
     Echo(Echo),
     Unrecognized(Unrecognized),
@@ -72,6 +73,12 @@ pub struct HSet {
     key: String,
     field: String,
     value: RespFrame,
+}
+
+#[derive(Debug)]
+pub struct HMGet {
+    key: String,
+    fields: Vec<String>,
 }
 
 #[derive(Debug)]
@@ -116,6 +123,7 @@ impl TryFrom<RespArray> for Command {
                             b"hget" => Ok(HGet::try_from(value)?.into()),
                             b"hset" => Ok(HSet::try_from(value)?.into()),
                             b"hgetall" => Ok(HGetAll::try_from(value)?.into()),
+                            b"hmget" => Ok(HMGet::try_from(value)?.into()),
                             b"echo" => Ok(Echo::try_from(value)?.into()),
                             _ => Ok(Unrecognized.into()),
                         }
@@ -135,30 +143,9 @@ pub fn validate_command(
     name: &str,
     expected_len: usize,
 ) -> Result<(), CommandError> {
+    validate_command_name(args, name)?;
     match args {
-        RespArray(None) => {
-            return Err(CommandError::InvalidCommand(
-                "Invalid command, Command must not be RespNullArray".to_string(),
-            ));
-        }
         RespArray(Some(ref args)) => {
-            match args[0] {
-                RespFrame::BulkString(BulkString(Some(ref command))) => {
-                    if command != name.as_bytes() {
-                        return Err(CommandError::InvalidCommand(format!(
-                            "Invalid command: expected {}",
-                            name
-                        )));
-                    }
-                }
-                _ => {
-                    return Err(CommandError::InvalidCommand(format!(
-                        "Invalid command: expected {}",
-                        name
-                    )))
-                }
-            }
-
             if args.len() != expected_len + 1 {
                 return Err(CommandError::InvalidArgument(format!(
                     "{} command must have exactly {} arguments",
@@ -166,6 +153,56 @@ pub fn validate_command(
                 )));
             }
         }
+        RespArray(None) => (), // This should never happen
+    }
+
+    Ok(())
+}
+
+pub fn validate_dynamic_command(
+    args: &RespArray,
+    name: &str,
+    at_least: usize,
+) -> Result<(), CommandError> {
+    validate_command_name(args, name)?;
+    match args {
+        RespArray(Some(ref args)) => {
+            if args.len() < at_least + 1 {
+                return Err(CommandError::InvalidArgument(format!(
+                    "{} command must have at least {} arguments",
+                    name, at_least
+                )));
+            }
+        }
+        RespArray(None) => (), // This should never happen
+    }
+
+    Ok(())
+}
+
+fn validate_command_name(args: &RespArray, name: &str) -> Result<(), CommandError> {
+    match args {
+        RespArray(None) => {
+            return Err(CommandError::InvalidCommand(
+                "Invalid command, Command must not be RespNullArray".to_string(),
+            ));
+        }
+        RespArray(Some(ref args)) => match args[0] {
+            RespFrame::BulkString(BulkString(Some(ref command))) => {
+                if command != name.as_bytes() {
+                    return Err(CommandError::InvalidCommand(format!(
+                        "Invalid command: expected {}",
+                        name
+                    )));
+                }
+            }
+            _ => {
+                return Err(CommandError::InvalidCommand(format!(
+                    "Invalid command: expected {}",
+                    name
+                )))
+            }
+        },
     }
 
     Ok(())
