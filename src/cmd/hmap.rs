@@ -1,9 +1,33 @@
 use crate::{Backend, BulkString, RespArray, RespFrame, RespNull};
 
 use super::{
-    extract_args, validate_command, validate_dynamic_command, CommandError, CommandExecutor, HGet,
-    HGetAll, HMGet, HSet, RESP_OK,
+    extract_args, validate_command, validate_dynamic_command, CommandError, CommandExecutor,
+    RESP_OK,
 };
+
+#[derive(Debug)]
+pub struct HGet {
+    key: String,
+    field: String,
+}
+
+#[derive(Debug)]
+pub struct HSet {
+    key: String,
+    field: String,
+    value: RespFrame,
+}
+
+#[derive(Debug)]
+pub struct HMGet {
+    key: String,
+    fields: Vec<String>,
+}
+
+#[derive(Debug)]
+pub struct HGetAll {
+    key: String,
+}
 
 impl CommandExecutor for HGet {
     fn execute(self, backend: &Backend) -> RespFrame {

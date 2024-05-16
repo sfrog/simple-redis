@@ -86,7 +86,7 @@ mod tests {
         .into();
         assert_eq!(
             frame.encode(),
-            b"*6\r\n+OK\r\n-ERR\r\n:+123\r\n$5\r\nhello\r\n$-1\r\n*-1\r\n"
+            b"*6\r\n+OK\r\n-ERR\r\n:123\r\n$5\r\nhello\r\n$-1\r\n*-1\r\n"
         );
     }
 

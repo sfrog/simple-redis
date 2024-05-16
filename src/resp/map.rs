@@ -114,7 +114,7 @@ mod tests {
             b"%15\r\n\
             +key01\r\n+value1\r\n\
             +key02\r\n-value2\r\n\
-            +key03\r\n:+123\r\n\
+            +key03\r\n:123\r\n\
             +key04\r\n$6\r\nvalue4\r\n\
             +key05\r\n$-1\r\n\
             +key06\r\n*-1\r\n\

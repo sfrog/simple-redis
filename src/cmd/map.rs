@@ -1,5 +1,16 @@
-use super::{extract_args, validate_command, CommandError, CommandExecutor, Get, Set, RESP_OK};
+use super::{extract_args, validate_command, CommandError, CommandExecutor, RESP_OK};
 use crate::{Backend, BulkString, RespArray, RespFrame, RespNull};
+
+#[derive(Debug)]
+pub struct Get {
+    key: String,
+}
+
+#[derive(Debug)]
+pub struct Set {
+    key: String,
+    value: RespFrame,
+}
 
 impl CommandExecutor for Get {
     fn execute(self, backend: &Backend) -> RespFrame {

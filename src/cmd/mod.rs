@@ -1,10 +1,15 @@
 mod echo;
 mod hmap;
+mod hset;
 mod map;
 
 use crate::{Backend, BulkString, RespArray, RespError, RespFrame, SimpleString};
+use echo::*;
 use enum_dispatch::enum_dispatch;
+use hmap::*;
+use hset::*;
 use lazy_static::lazy_static;
+use map::*;
 use thiserror::Error;
 use tracing::info;
 
@@ -38,57 +43,19 @@ pub enum Command {
     HSet(HSet),
     HMGet(HMGet),
     HGetAll(HGetAll),
+    SAdd(SAdd),
+    SIsMember(SIsMember),
     Echo(Echo),
     Unrecognized(Unrecognized),
-}
-
-impl CommandExecutor for Unrecognized {
-    fn execute(self, _: &Backend) -> RespFrame {
-        RESP_OK.clone()
-    }
 }
 
 #[derive(Debug)]
 pub struct Unrecognized;
 
-#[derive(Debug)]
-pub struct Get {
-    key: String,
-}
-
-#[derive(Debug)]
-pub struct Set {
-    key: String,
-    value: RespFrame,
-}
-
-#[derive(Debug)]
-pub struct HGet {
-    key: String,
-    field: String,
-}
-
-#[derive(Debug)]
-pub struct HSet {
-    key: String,
-    field: String,
-    value: RespFrame,
-}
-
-#[derive(Debug)]
-pub struct HMGet {
-    key: String,
-    fields: Vec<String>,
-}
-
-#[derive(Debug)]
-pub struct HGetAll {
-    key: String,
-}
-
-#[derive(Debug)]
-pub struct Echo {
-    message: String,
+impl CommandExecutor for Unrecognized {
+    fn execute(self, _: &Backend) -> RespFrame {
+        RESP_OK.clone()
+    }
 }
 
 impl TryFrom<RespFrame> for Command {
@@ -125,6 +92,8 @@ impl TryFrom<RespArray> for Command {
                             b"hgetall" => Ok(HGetAll::try_from(value)?.into()),
                             b"hmget" => Ok(HMGet::try_from(value)?.into()),
                             b"echo" => Ok(Echo::try_from(value)?.into()),
+                            b"sadd" => Ok(SAdd::try_from(value)?.into()),
+                            b"sismember" => Ok(SIsMember::try_from(value)?.into()),
                             _ => Ok(Unrecognized.into()),
                         }
                     }

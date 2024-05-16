@@ -81,6 +81,7 @@ impl Encoder<RespFrame> for RespFrameCodec {
 
     fn encode(&mut self, item: RespFrame, dst: &mut bytes::BytesMut) -> Result<()> {
         let encoded = item.encode();
+        info!("Encoded Response: {:?}", String::from_utf8_lossy(&encoded));
         dst.extend_from_slice(&encoded);
         Ok(())
     }

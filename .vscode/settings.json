@@ -8,6 +8,10 @@
     "hset",
     "peekable",
     "raddr",
+    "sadd",
+    "sismember",
+    "sismembers",
+    "smembers",
     "thiserror"
   ]
 }

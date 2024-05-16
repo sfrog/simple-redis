@@ -1,5 +1,10 @@
-use super::{extract_args, validate_command, CommandError, CommandExecutor, Echo};
+use super::{extract_args, validate_command, CommandError, CommandExecutor};
 use crate::{Backend, BulkString, RespArray, RespFrame};
+
+#[derive(Debug)]
+pub struct Echo {
+    message: String,
+}
 
 impl CommandExecutor for Echo {
     fn execute(self, _backend: &Backend) -> RespFrame {
