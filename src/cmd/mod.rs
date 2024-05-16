@@ -1,3 +1,4 @@
+mod echo;
 mod hmap;
 mod map;
 
@@ -5,6 +6,7 @@ use crate::{Backend, BulkString, RespArray, RespError, RespFrame, SimpleString};
 use enum_dispatch::enum_dispatch;
 use lazy_static::lazy_static;
 use thiserror::Error;
+use tracing::info;
 
 lazy_static! {
     static ref RESP_OK: RespFrame = SimpleString::new("OK").into();
@@ -35,6 +37,7 @@ pub enum Command {
     HGet(HGet),
     HSet(HSet),
     HGetAll(HGetAll),
+    Echo(Echo),
     Unrecognized(Unrecognized),
 }
 
@@ -76,6 +79,11 @@ pub struct HGetAll {
     key: String,
 }
 
+#[derive(Debug)]
+pub struct Echo {
+    message: String,
+}
+
 impl TryFrom<RespFrame> for Command {
     type Error = CommandError;
 
@@ -93,6 +101,7 @@ impl TryFrom<RespArray> for Command {
     type Error = CommandError;
 
     fn try_from(value: RespArray) -> Result<Self, Self::Error> {
+        info!("Command: {:?}", value);
         match &value.0 {
             None => Err(CommandError::InvalidCommand(
                 "Invalid command, Command must not be RespNullArray".to_string(),
@@ -107,6 +116,7 @@ impl TryFrom<RespArray> for Command {
                             b"hget" => Ok(HGet::try_from(value)?.into()),
                             b"hset" => Ok(HSet::try_from(value)?.into()),
                             b"hgetall" => Ok(HGetAll::try_from(value)?.into()),
+                            b"echo" => Ok(Echo::try_from(value)?.into()),
                             _ => Ok(Unrecognized.into()),
                         }
                     }
