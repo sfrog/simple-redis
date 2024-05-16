@@ -96,13 +96,13 @@ impl TryFrom<RespArray> for Command {
         let mut args = value.clone().0.into_iter();
 
         match args.next() {
-            Some(RespFrame::BulkString(ref command)) => match command.0.as_slice() {
-                b"get" => Ok(Command::Get(Get::try_from(value)?)),
-                b"set" => Ok(Command::Set(Set::try_from(value)?)),
-                b"hget" => Ok(Command::HGet(HGet::try_from(value)?)),
-                b"hset" => Ok(Command::HSet(HSet::try_from(value)?)),
-                b"hgetall" => Ok(Command::HGetAll(HGetAll::try_from(value)?)),
-                _ => Ok(Command::Unrecognized(Unrecognized)),
+            Some(RespFrame::BulkString(ref command)) => match command.as_slice() {
+                b"get" => Ok(Get::try_from(value)?.into()),
+                b"set" => Ok(Set::try_from(value)?.into()),
+                b"hget" => Ok(HGet::try_from(value)?.into()),
+                b"hset" => Ok(HSet::try_from(value)?.into()),
+                b"hgetall" => Ok(HGetAll::try_from(value)?.into()),
+                _ => Ok(Unrecognized.into()),
             },
             _ => Err(CommandError::InvalidCommand(
                 "Invalid command, command must have a BulkString as the first arg".to_string(),
