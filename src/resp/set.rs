@@ -70,8 +70,8 @@ mod tests {
             SimpleError::new("ERR").into(),
             123.into(),
             BulkString::new(b"hello".to_vec()).into(),
-            RespNullBulkString.into(),
-            RespNullArray.into(),
+            BulkString::new_null().into(),
+            RespArray::new_null().into(),
         ])
         .into();
         assert_eq!(

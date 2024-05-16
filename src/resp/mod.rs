@@ -15,14 +15,8 @@ use enum_dispatch::enum_dispatch;
 use thiserror::Error;
 
 pub use self::{
-    array::{RespArray, RespNullArray},
-    bulk_string::{BulkString, RespNullBulkString},
-    frame::RespFrame,
-    map::RespMap,
-    null::RespNull,
-    set::RespSet,
-    simple_error::SimpleError,
-    simple_string::SimpleString,
+    array::RespArray, bulk_string::BulkString, frame::RespFrame, map::RespMap, null::RespNull,
+    set::RespSet, simple_error::SimpleError, simple_string::SimpleString,
 };
 
 pub const BUF_CAPACITY: usize = 4096;
@@ -70,7 +64,7 @@ pub fn extract_fixed_data(buf: &mut BytesMut, expect: &str) -> Result<(), RespEr
     Ok(())
 }
 
-pub fn extract_simple_frame_date(
+pub fn extract_simple_frame_data(
     buf: &BytesMut,
     prefix: &str,
     nth_crlf: usize,
@@ -110,8 +104,8 @@ fn find_crlf(buf: &BytesMut, nth: usize) -> Option<usize> {
     None
 }
 
-pub fn parse_length(buf: &BytesMut, prefix: &str) -> Result<(usize, usize), RespError> {
-    let end = extract_simple_frame_date(buf, prefix, 1)?;
+pub fn parse_length(buf: &BytesMut, prefix: &str) -> Result<(usize, isize), RespError> {
+    let end = extract_simple_frame_data(buf, prefix, 1)?;
     let s = String::from_utf8_lossy(&buf[prefix.len()..end]);
     Ok((end, s.parse()?))
 }

@@ -1,10 +1,10 @@
-use crate::{extract_simple_frame_date, RespDecode, RespEncode, RespError, CRLF_LEN};
+use crate::{extract_simple_frame_data, RespDecode, RespEncode, RespError, CRLF_LEN};
 use bytes::BytesMut;
 
 impl RespDecode for f64 {
     fn decode(buf: &mut BytesMut) -> Result<Self, RespError> {
         let prefix = ",";
-        let end = extract_simple_frame_date(buf, prefix, 1)?;
+        let end = extract_simple_frame_data(buf, prefix, 1)?;
 
         let data = buf.split_to(end + CRLF_LEN);
         let s = String::from_utf8_lossy(&data[prefix.len()..end]).to_string();

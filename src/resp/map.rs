@@ -96,8 +96,8 @@ mod tests {
             "key04".to_string(),
             BulkString::new(b"value4".to_vec()).into(),
         );
-        map.insert("key05".to_string(), RespNullBulkString.into());
-        map.insert("key06".to_string(), RespNullArray.into());
+        map.insert("key05".to_string(), BulkString::new_null().into());
+        map.insert("key06".to_string(), RespArray::new_null().into());
         map.insert("key07".to_string(), true.into());
         map.insert("key08".to_string(), false.into());
         map.insert("key09".to_string(), 123.456.into());

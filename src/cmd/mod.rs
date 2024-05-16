@@ -1,7 +1,7 @@
 mod hmap;
 mod map;
 
-use crate::{Backend, RespArray, RespError, RespFrame, SimpleString};
+use crate::{Backend, BulkString, RespArray, RespError, RespFrame, SimpleString};
 use enum_dispatch::enum_dispatch;
 use lazy_static::lazy_static;
 use thiserror::Error;
@@ -93,20 +93,29 @@ impl TryFrom<RespArray> for Command {
     type Error = CommandError;
 
     fn try_from(value: RespArray) -> Result<Self, Self::Error> {
-        let mut args = value.clone().0.into_iter();
-
-        match args.next() {
-            Some(RespFrame::BulkString(ref command)) => match command.as_slice() {
-                b"get" => Ok(Get::try_from(value)?.into()),
-                b"set" => Ok(Set::try_from(value)?.into()),
-                b"hget" => Ok(HGet::try_from(value)?.into()),
-                b"hset" => Ok(HSet::try_from(value)?.into()),
-                b"hgetall" => Ok(HGetAll::try_from(value)?.into()),
-                _ => Ok(Unrecognized.into()),
-            },
-            _ => Err(CommandError::InvalidCommand(
-                "Invalid command, command must have a BulkString as the first arg".to_string(),
+        match &value.0 {
+            None => Err(CommandError::InvalidCommand(
+                "Invalid command, Command must not be RespNullArray".to_string(),
             )),
+            Some(vec) => {
+                let mut args = vec.iter();
+                match args.next() {
+                    Some(RespFrame::BulkString(BulkString(Some(ref command)))) => {
+                        match command.as_slice() {
+                            b"get" => Ok(Get::try_from(value)?.into()),
+                            b"set" => Ok(Set::try_from(value)?.into()),
+                            b"hget" => Ok(HGet::try_from(value)?.into()),
+                            b"hset" => Ok(HSet::try_from(value)?.into()),
+                            b"hgetall" => Ok(HGetAll::try_from(value)?.into()),
+                            _ => Ok(Unrecognized.into()),
+                        }
+                    }
+                    _ => Err(CommandError::InvalidCommand(
+                        "Invalid command, command must have a BulkString as the first arg"
+                            .to_string(),
+                    )),
+                }
+            }
         }
     }
 }
@@ -116,33 +125,47 @@ pub fn validate_command(
     name: &str,
     expected_len: usize,
 ) -> Result<(), CommandError> {
-    match args[0] {
-        RespFrame::BulkString(ref command) => {
-            if command.0 != name.as_bytes() {
-                return Err(CommandError::InvalidCommand(format!(
-                    "Invalid command: expected {}",
-                    name
+    match args {
+        RespArray(None) => {
+            return Err(CommandError::InvalidCommand(
+                "Invalid command, Command must not be RespNullArray".to_string(),
+            ));
+        }
+        RespArray(Some(ref args)) => {
+            match args[0] {
+                RespFrame::BulkString(BulkString(Some(ref command))) => {
+                    if command != name.as_bytes() {
+                        return Err(CommandError::InvalidCommand(format!(
+                            "Invalid command: expected {}",
+                            name
+                        )));
+                    }
+                }
+                _ => {
+                    return Err(CommandError::InvalidCommand(format!(
+                        "Invalid command: expected {}",
+                        name
+                    )))
+                }
+            }
+
+            if args.len() != expected_len + 1 {
+                return Err(CommandError::InvalidArgument(format!(
+                    "{} command must have exactly {} arguments",
+                    name, expected_len
                 )));
             }
         }
-        _ => {
-            return Err(CommandError::InvalidCommand(format!(
-                "Invalid command: expected {}",
-                name
-            )))
-        }
-    }
-
-    if args.len() != expected_len + 1 {
-        return Err(CommandError::InvalidArgument(format!(
-            "{} command must have exactly {} arguments",
-            name, expected_len
-        )));
     }
 
     Ok(())
 }
 
-pub fn extract_args(args: RespArray, start: usize) -> Vec<RespFrame> {
-    args.0.into_iter().skip(start).collect()
+pub fn extract_args(args: RespArray, start: usize) -> Result<Vec<RespFrame>, CommandError> {
+    match args.0 {
+        None => Err(CommandError::InvalidCommand(
+            "Invalid command, Command must not be RespNullArray".to_string(),
+        )),
+        Some(args) => Ok(args.into_iter().skip(start).collect()),
+    }
 }

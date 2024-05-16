@@ -2,8 +2,8 @@ use bytes::BytesMut;
 use enum_dispatch::enum_dispatch;
 
 use crate::{
-    BulkString, RespArray, RespDecode, RespError, RespMap, RespNull, RespNullArray,
-    RespNullBulkString, RespSet, SimpleError, SimpleString,
+    BulkString, RespArray, RespDecode, RespError, RespMap, RespNull, RespSet, SimpleError,
+    SimpleString,
 };
 
 #[enum_dispatch(RespEncode)]
@@ -13,9 +13,7 @@ pub enum RespFrame {
     Error(SimpleError),
     Integer(i64),
     BulkString(BulkString),
-    NullBulkString(RespNullBulkString),
     Array(RespArray),
-    NullArray(RespNullArray),
     Null(RespNull),
     Boolean(bool),
     Double(f64),
@@ -30,14 +28,8 @@ impl RespDecode for RespFrame {
             Some(b'+') => SimpleString::decode(buf).map(RespFrame::SimpleString),
             Some(b'-') => SimpleError::decode(buf).map(RespFrame::Error),
             Some(b':') => i64::decode(buf).map(RespFrame::Integer),
-            Some(b'$') => match RespNullBulkString::decode(buf) {
-                Ok(frame) => Ok(RespFrame::NullBulkString(frame)),
-                Err(_) => BulkString::decode(buf).map(RespFrame::BulkString),
-            },
-            Some(b'*') => match RespNullArray::decode(buf) {
-                Ok(frame) => Ok(RespFrame::NullArray(frame)),
-                Err(_) => RespArray::decode(buf).map(RespFrame::Array),
-            },
+            Some(b'$') => BulkString::decode(buf).map(RespFrame::BulkString),
+            Some(b'*') => RespArray::decode(buf).map(RespFrame::Array),
             Some(b'_') => RespNull::decode(buf).map(RespFrame::Null),
             Some(b'#') => bool::decode(buf).map(RespFrame::Boolean),
             Some(b',') => f64::decode(buf).map(RespFrame::Double),
