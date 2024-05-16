@@ -1,6 +1,5 @@
-use bytes::BytesMut;
-
 use crate::{extract_fixed_data, RespDecode, RespEncode, RespError};
+use bytes::BytesMut;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct RespNull;

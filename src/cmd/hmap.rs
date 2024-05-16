@@ -1,9 +1,8 @@
-use crate::{Backend, BulkString, RespArray, RespFrame, RespNull};
-
 use super::{
     extract_args, validate_command, validate_dynamic_command, CommandError, CommandExecutor,
     RESP_OK,
 };
+use crate::{Backend, BulkString, RespArray, RespFrame, RespNull};
 
 #[derive(Debug)]
 pub struct HGet {

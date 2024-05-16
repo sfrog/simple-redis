@@ -1,10 +1,9 @@
-use bytes::BytesMut;
-use enum_dispatch::enum_dispatch;
-
 use crate::{
     BulkString, RespArray, RespDecode, RespError, RespMap, RespNull, RespSet, SimpleError,
     SimpleString,
 };
+use bytes::BytesMut;
+use enum_dispatch::enum_dispatch;
 
 #[enum_dispatch(RespEncode)]
 #[derive(Debug, Clone, PartialEq)]

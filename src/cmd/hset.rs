@@ -1,8 +1,7 @@
-use crate::{Backend, BulkString, RespArray, RespFrame};
-
 use super::{
     extract_args, validate_command, validate_dynamic_command, CommandError, CommandExecutor,
 };
+use crate::{Backend, BulkString, RespArray, RespFrame};
 
 #[derive(Debug)]
 pub struct SAdd {

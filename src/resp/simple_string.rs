@@ -1,8 +1,6 @@
-use std::ops::Deref;
-
-use bytes::BytesMut;
-
 use crate::{extract_simple_frame_data, RespDecode, RespEncode, RespError, CRLF_LEN};
+use bytes::BytesMut;
+use std::ops::Deref;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct SimpleString(pub(crate) String);

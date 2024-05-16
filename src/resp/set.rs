@@ -1,8 +1,6 @@
-use std::ops::Deref;
-
-use bytes::{Buf, BytesMut};
-
 use crate::{parse_length, RespDecode, RespEncode, RespError, RespFrame, BUF_CAPACITY, CRLF_LEN};
+use bytes::{Buf, BytesMut};
+use std::ops::Deref;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct RespSet(Vec<RespFrame>);
