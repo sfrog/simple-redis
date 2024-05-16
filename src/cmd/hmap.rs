@@ -1,4 +1,4 @@
-use crate::{Backend, RespArray, RespFrame, RespMap, RespNull};
+use crate::{Backend, BulkString, RespArray, RespFrame, RespNull};
 
 use super::{
     extract_args, validate_command, CommandError, CommandExecutor, HGet, HGetAll, HSet, RESP_OK,
@@ -17,13 +17,14 @@ impl CommandExecutor for HGetAll {
     fn execute(self, backend: &Backend) -> RespFrame {
         if let Some(map) = backend.hgetall(&self.key) {
             // transform the map into a RespMap
-            let mut resp_map = RespMap::new();
+            let mut ret = Vec::with_capacity(map.len() * 2);
             map.into_iter().for_each(|(k, v)| {
-                resp_map.insert(k, v);
+                ret.push(BulkString::new(k).into());
+                ret.push(v)
             });
-            resp_map.into()
+            RespArray::new(ret).into()
         } else {
-            RespFrame::Null(RespNull)
+            RespArray::new(Vec::new()).into()
         }
     }
 }
@@ -174,16 +175,30 @@ mod tests {
             RespFrame::BulkString(BulkString::new("world".as_bytes()))
         );
 
+        let hset = HSet {
+            key: "map".to_string(),
+            field: "hello1".to_string(),
+            value: RespFrame::BulkString(BulkString::new("world1".as_bytes())),
+        };
+        let result = hset.execute(&backend);
+        assert_eq!(result, RESP_OK.clone());
         let hgetall = HGetAll {
             key: "map".to_string(),
         };
         let result = hgetall.execute(&backend);
-        let mut map = RespMap::new();
-        map.insert(
-            "hello".to_string(),
-            RespFrame::BulkString(BulkString::new("world".as_bytes())),
-        );
-        assert_eq!(result, map.into());
+        let expected = RespArray::new(vec![
+            BulkString::new("hello".as_bytes()).into(),
+            BulkString::new("world".as_bytes()).into(),
+            BulkString::new("hello1".as_bytes()).into(),
+            BulkString::new("world1".as_bytes()).into(),
+        ]);
+        let expected1 = RespArray::new(vec![
+            BulkString::new("hello1".as_bytes()).into(),
+            BulkString::new("world1".as_bytes()).into(),
+            BulkString::new("hello".as_bytes()).into(),
+            BulkString::new("world".as_bytes()).into(),
+        ]);
+        assert!(result == expected.into() || result == expected1.into());
 
         Ok(())
     }
