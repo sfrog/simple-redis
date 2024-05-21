@@ -84,7 +84,7 @@ impl TryFrom<RespArray> for Command {
                 let mut args = vec.iter();
                 match args.next() {
                     Some(RespFrame::BulkString(BulkString(Some(ref command)))) => {
-                        match command.as_slice() {
+                        match command.to_ascii_lowercase().as_slice() {
                             b"get" => Ok(Get::try_from(value)?.into()),
                             b"set" => Ok(Set::try_from(value)?.into()),
                             b"hget" => Ok(HGet::try_from(value)?.into()),
@@ -158,7 +158,7 @@ fn validate_command_name(args: &RespArray, name: &str) -> Result<(), CommandErro
         }
         RespArray(Some(ref args)) => match args[0] {
             RespFrame::BulkString(BulkString(Some(ref command))) => {
-                if command != name.as_bytes() {
+                if command.to_ascii_lowercase() != name.as_bytes() {
                     return Err(CommandError::InvalidCommand(format!(
                         "Invalid command: expected {}",
                         name
